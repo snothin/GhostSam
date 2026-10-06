@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:sharedUserId="android.uid.system">
+
+    <permission android:name="com.snothin.ghostsam.companion.permission.CONTROL" android:protectionLevel="signature" />
+
+    <application android:label="GhostSam Companion" android:allowBackup="false" android:process="system">
+
+        <service android:name=".CompanionService" android:exported="true" android:permission="com.snothin.ghostsam.companion.permission.CONTROL" />
+
+        <receiver android:name=".StageReceiver" android:exported="false" />
+    </application>
+</manifest>

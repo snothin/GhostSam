@@ -1,0 +1,41 @@
+GhostSam
+Copyright 2026 nothin (https://github.com/snothin)
+
+Kernel privilege-escalation research for the Samsung Galaxy S22 / S26 /
+Z Fold8 families, plus an Android manager app (com.snothin.ghostsam).
+
+## Third-party notices
+
+| Component                                                          | Upstream                      | License       |
+| ------------------------------------------------------------------ | ----------------------------- | ------------- |
+| KernelSnitch (mm_struct futex-hash leak; adapted for this tree)    | lukasmaar/kernelsnitch        | MIT           |
+| jhash (Jenkins lookup3), via the Linux kernel                      | Bob Jenkins (public domain)   | public domain |
+| Tracefs slide oracle, pselect walk timing / stale-page handling    | polygraphene/CyberMeowfia     | Apache-2.0    |
+| ksud, ksud-next (prebuilt binaries bundled in the app assets only) | tiann/KernelSU, KernelSU-Next | GPL-2.0       |
+
+The KernelSnitch-derived files under `exploit/src/common/kernelsnitch/` keep
+the upstream jhash copyright notice (Bob Jenkins, public domain, via the
+Linux kernel). No other third-party source subtree is imported.
+
+## Provenance
+
+- The s26 chain is merged from the ghostlock-s26 project
+  (https://github.com/snothin/ghostlock-s26); its README carries the full
+  credit list for the S26 work.
+- ksud and ksud-next are built from snothin's forks,
+  https://github.com/snothin/KernelSU and
+  https://github.com/snothin/KernelSU-Next. Both forks track the upstream
+  KernelSU / KernelSU-Next projects and incorporate work from multiple
+  developers in the KernelSU community.
+
+## Acknowledgements
+
+- **DirtyFrag (CVE-2026-43284)** - the public technique this chain follows;
+  first discovered and reported by Hyunwoo Kim (@v4bel).
+- **[DFRoot](https://github.com/diabl0w/DFRoot)** (diabl0w/DFRoot) - reference
+  implementation of the installer chain; no license (all rights reserved).
+- **Z Fold8 transplant input (io_submit primer)** - from @diabl0w.
+- This tree's dirtyfrag implementation was written independently from the
+  public mechanism; no source code from either upstream is included, and
+  residual overlap is limited to unavoidable boilerplate (kernel headers,
+  ARM64 register save sequences, UAPI constants).

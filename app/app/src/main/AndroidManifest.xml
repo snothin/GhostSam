@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+     <!-- Built-in adb wireless-debug bridge (libadb-android): network sockets + mDNS discovery -->
+     <uses-permission android:name="android.permission.INTERNET" />
+     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+     <!-- POST_NOTIFICATIONS: RemoteInput pairing-code entry (Android 13+ runtime permission) -->
+     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+     <!-- Pairing foreground service (connectedDevice type)  -->
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+     <!-- Persistent companion (same-signature signature permission): drives the system-uid component -->
+     <uses-permission android:name="com.snothin.ghostsam.companion.permission.CONTROL" />
+
+     <queries>
+          <!-- Package visibility (Android 11+): without it getLaunchIntentForPackage silently returns null -->
+          <package android:name="me.weishu.kernelsu" />
+          <package android:name="com.rifsxd.ksunext" />
+          <package android:name="moe.shizuku.manager" />
+          <package android:name="com.snothin.ghostsam.companion" />
+          <!-- KernelSU-Next "-spoofed" builds use a random package name: cert scanning needs the launcher app set to be visible -->
+          <intent>
+               <action android:name="android.intent.action.MAIN" />
+               <category android:name="android.intent.category.LAUNCHER" />
+          </intent>
+     </queries>
+
+     <application android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:localeConfig="@xml/locales_config" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.GhostSam">
+
+          <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+               <intent-filter>
+                    <action android:name="android.intent.action.MAIN" />
+                    <category android:name="android.intent.category.LAUNCHER" />
+               </intent-filter>
+          </activity>
+
+          <!-- Shizuku authorization -->
+          <provider android:name="rikka.shizuku.ShizukuProvider" android:authorities="${applicationId}.shizuku" android:exported="true" />
+
+          <!-- Wireless-debug pairing foreground service (RemoteInput code entry) -->
+          <service android:name=".data.channel.AdbPairService" android:exported="false" android:foregroundServiceType="connectedDevice" />
+     </application>
+
+</manifest>

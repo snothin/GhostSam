@@ -1,0 +1,30 @@
+#  Gradle / Android 
+app/.gradle/
+app/.kotlin/
+app/.gsprobe/
+app/local.properties
+app/keystore.properties
+app/sign.properties
+app/keystore/
+*.jks
+*.keystore
+*.key
+.idea/
+*.iml
+.vscode/
+app/build/
+app/app/build/
+app/companion/build/
+app/app/.cxx/
+app/companion/.cxx/
+/build/
+exploit/build/
+
+#  Build products / caches 
+**/__pycache__/
+*.pyc
+*.o
+
+#  Local scratch 
+tmp/
+*.log

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="1024" android:viewportHeight="1024">
+
+    <group android:pivotX="512" android:pivotY="512" android:scaleX="0.5" android:scaleY="0.5">
+
+        <group android:translateX="51.2" android:translateY="40.96" android:scaleX="0.9" android:scaleY="0.92">
+            <path android:fillColor="#000000" android:pathData="M938.666667 819.456V512c0-235.648-191.018667-426.666667-426.666667-426.666667S85.333333 276.352 85.333333 512v307.456a73.685333 73.685333 0 0 0 106.666667 65.877333 123.349333 123.349333 0 0 1 123.562667 7.68 123.392 123.392 0 0 0 136.874666 0l15.061334-9.984a80.256 80.256 0 0 1 89.002666 0l15.061334 10.026667a123.392 123.392 0 0 0 136.874666 0 123.349333 123.349333 0 0 1 123.605334-7.68c48.981333 24.448 106.624-11.136 106.624-65.92z" />
+
+            <group android:pivotX="640" android:pivotY="448" android:scaleX="0.9" android:scaleY="0.81225">
+                <path android:fillColor="#000000" android:pathData="M682.666667 448c0 35.328-19.114667 64-42.666667 64s-42.666667-28.672-42.666667-64 19.114667-64 42.666667-64 42.666667 28.672 42.666667 64z" />
+            </group>
+
+            <group android:pivotX="384" android:pivotY="448" android:scaleX="0.9" android:scaleY="0.81225">
+                <path android:fillColor="#000000" android:pathData="M384 512c-23.552 0-42.666667-28.672-42.666667-64S360.448 384 384 384s42.666667 28.672 42.666667 64S407.552 512 384 512z" />
+            </group>
+        </group>
+    </group>
+</vector>
+
+
