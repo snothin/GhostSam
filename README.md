@@ -108,8 +108,9 @@ cd app
 The `:app:verifyPayloads` Gradle task validates the payload set during the
 build: each series folder must provide `preload.so` and `su_daemon`,
 `payloads/ksud/` must provide `ksud` and `ksud-next`, and
-`payloads/dirtyfrag/` must provide `dfr_payload` plus one
-`dfr_lkm-<kmi>.ko` for every supported KMI.
+`payloads/dirtyfrag/` must provide one
+`dfr_lkm-<kmi>.ko` for every supported KMI (the user-space dirtyfrag
+chain is compiled into the app via JNI, not staged as a separate binary).
 
 ### Native payloads
 
@@ -119,8 +120,9 @@ artifacts land under `exploit/build/`:
 
 ```bash
 cd exploit
-make            # all series + dirtyfrag payloads
-make s26        # or a single target: s26 / s22 / zf8 / dirtyfrag
+make            # all series payloads (s26 / s22 / zf8)
+make s26        # or a single target: s26 / s22 / zf8
+make test       # host selftests (no device / NDK needed)
 ```
 
 ### Dirtyfrag kernel module
