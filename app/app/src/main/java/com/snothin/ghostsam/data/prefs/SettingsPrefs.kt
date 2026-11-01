@@ -21,6 +21,7 @@ object SettingsPrefs {
     private const val TCP_PERSIST = "tcp_persist"
     private const val TCP_PORT = "tcp_port"
     private const val ADB_PAIRED = "adb_paired"
+    private const val BOOT_REAPPLY = "boot_reapply"
 
     val localPayloadFlow = MutableStateFlow(false)
 
@@ -115,6 +116,15 @@ object SettingsPrefs {
 
     fun setTcpPort(context: Context, value: Int) {
         prefs(context).edit().putInt(TCP_PORT, value.coerceIn(TCP_PORT_MIN, TCP_PORT_MAX)).apply()
+    }
+
+    /** Boot re-apply reminder (default off): after a reboot, BootReapplyReceiver posts a one-tap
+     *  notification to re-run the chain. The run itself never starts unattended. */
+    fun bootReapply(context: Context): Boolean =
+        prefs(context).getBoolean(BOOT_REAPPLY, false)
+
+    fun setBootReapply(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(BOOT_REAPPLY, value).apply()
     }
 
     fun adbPaired(context: Context): Boolean =

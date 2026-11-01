@@ -78,7 +78,9 @@ private fun drainBounded(input: InputStream, sink: ByteArrayOutputStream, limit:
     while (true) {
         val n = input.read(buf)
         if (n <= 0) break
-        if (sink.size() < limit) sink.write(buf, 0, n)
+        // Cap is hard: the old "< limit then write the whole chunk" form overshot by up to 8KB.
+        val room = limit - sink.size()
+        if (room > 0) sink.write(buf, 0, minOf(n, room))
     }
 }
 
