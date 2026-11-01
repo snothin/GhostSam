@@ -61,11 +61,20 @@ data class DeviceSnapshot(
             }
         }.getOrDefault("")
 
+        private const val GETPROP_TIMEOUT_MS = 2_000L
+
+        /** getprop with a hard timeout: a wedged system property call must not pin the UI
+         *  (waitFor() with no deadline once froze device detection on a stuck /system/bin/getprop). */
         private fun readProp(key: String): String = runCatching {
             val process = Runtime.getRuntime().exec(arrayOf("getprop", key))
-            process.inputStream.bufferedReader().use { it.readText() }.trim().also {
-                process.waitFor()
-                if (process.isAlive) process.destroy()
+            try {
+                val out = process.inputStream.bufferedReader().use { it.readText() }.trim()
+                if (!process.waitFor(GETPROP_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                    return@runCatching ""
+                }
+                out
+            } finally {
+                if (process.isAlive) process.destroyForcibly()
             }
         }.getOrDefault("")
     }
