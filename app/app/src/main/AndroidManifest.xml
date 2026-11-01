@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
      <!-- POST_NOTIFICATIONS: RemoteInput pairing-code entry (Android 13+ runtime permission) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+     <!-- Boot re-apply reminder (issue #7): one-tap notification after reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
      <!-- Pairing foreground service (connectedDevice type)  -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
@@ -40,6 +42,14 @@
     <!-- Class name follows the data-package refactor: keep in sync when classes move, the compiler
          cannot check it; startForegroundService fails silently for undeclared components (logcat only). -->
         <service android:name=".data.channel.AdbPairService" android:exported="false" android:foregroundServiceType="connectedDevice" />
+
+          <!-- Boot re-apply reminder: posts a one-tap notification when root was lost to a reboot -->
+        <receiver android:name=".data.exploit.BootReapplyReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

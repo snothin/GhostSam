@@ -4,11 +4,12 @@
 
 Kernel privilege-escalation toolkit for Samsung Galaxy S22 / S26 / Z Fold8
 devices (Android 12 and up, kernels 5.10-6.18), with an Android manager app
-that drives the whole flow over ADB.
+that drives the whole flow — over built-in wireless debugging (no PC), or
+Shizuku.
 
 The tree ships three device-specific Ghostlock exploit chains (race-based),
 a dirtyfrag install chain (matched by KMI), a shared userspace layer, and
-the app that packages the prebuilt payloads.
+the app that packages the prebuilt payloads and orchestrates every run.
 
 ## Overview
 
@@ -17,7 +18,8 @@ the app that packages the prebuilt payloads.
 - **Install paths**:
   - **dirtyfrag (recommended, faster)**: a single run deploys the KernelSU
     kernel module (page-cache 4-byte store via xfrm-ESP, CVE-2026-43284)
-    and late-loads it directly; there is no race to win.
+    and late-loads it directly; there is no race to win. Runs standalone
+    from the home card — no companion app, no ADB.
   - **Ghostlock chains**: race-based exploits for the selected series; the
     device reboots during the run, after which the app completes the
     KernelSU late-load.
@@ -33,10 +35,39 @@ the app that packages the prebuilt payloads.
 - **Root channel**: `su_daemon` keeps a root shell on
   `/data/local/tmp/temp_su.sock` for the session.
 - **Persistence (temporary root)**: KernelSU or KernelSU-Next is
-  late-loaded; root is kept until the next reboot (re-run the chain to
-  re-apply). In the Ghostlock chains the `ksud` binary is bind-mounted over
-  a dormant system binary, so path-based DEFEX rules only ever see a
-  whitelisted target.
+  late-loaded; root is kept until the next reboot. The app's boot re-apply
+  reminder (More → Support) posts a one-tap notification after a reboot to
+  re-run the chain — the run never starts unattended. In the Ghostlock
+  chains the `ksud` binary is bind-mounted over a dormant system binary, so
+  path-based DEFEX rules only ever see a whitelisted target.
+
+## App features
+
+- **Two root schemes**: Ghostlock (chains + KernelSU late-load) and
+  DirtyFrag (standalone, JNI-compiled chain, per-KMI modules).
+- **Self-contained channels**: built-in wireless-debug pairing/connection
+  (libadb-android, notification code entry, optional TCP persistence) or
+  Shizuku — no PC required.
+- **Run console**: live log with stall/total timeouts, channel self-healing,
+  boot-state receipts, run history with export (log / ZIP).
+- **Failure diagnostics**: every failed run appends a guarded `[diag]`
+  bundle (device, kernel, series match, phase, exit code, boot state,
+  uptime/load) — grep it from the run log and paste it into an issue.
+- **Device report**: More → Support → *Copy device report* puts a
+  paste-ready markdown table (codename, build, fingerprint, kernel, KMI,
+  match evidence) on the clipboard for device-adaptation requests.
+- **Boot re-apply reminder**: More → Support toggle; after a reboot a
+  one-tap notification re-opens the app straight into a run.
+- **Payload profiles**: local preload.so / ksud / su_daemon / ko sets with
+  per-profile run stats.
+- **System tools**: Samsung hidden menus (band selection, service mode,
+  field test…), SELinux toggle, ksud late-load upgrade, interactive
+  terminal (su / wireless debug / Shizuku).
+- **Custom kernel lines**: per-build parameter tables, same-line fallback,
+  or a fully custom 17-field line edited in-app (hex), validated by
+  `exploit/src/common/params_custom.h`.
+- **UI**: Jetpack Compose + Miuix, English / 简体中文, dynamic color,
+  light/dark, UI scaling.
 
 ## Supported devices
 
@@ -79,8 +110,12 @@ Shipped KMIs:
 ## Repository layout
 
 ```
-app/                             Android manager app (Kotlin / Jetpack Compose)
+app/                             Android manager app (Kotlin / Jetpack Compose / Miuix)
   app/src/main/assets/payloads/  prebuilt payloads staged into the APK
+  app/src/main/java/.../data/    channels (adb/Shizuku), exploit orchestration,
+                                 device matching, diagnostics, boot receiver, prefs
+  app/src/main/java/.../ui/      Compose screens (home, exploit, history, tools,
+                                 settings, more)
 exploit/
   src/common/                    shared layer: logging, options, parameter
                                  tables, KernelSnitch probe, KSU protocol,
@@ -88,9 +123,10 @@ exploit/
   src/chains/pselect/            pselect write chain + attr carrier + UMH root
   src/chains/iosubmit/           io_submit write chain (zf8, s26 on One UI 9)
   src/chains/dirtyfrag/          xfrm-ESP page-cache store installer + LKM
-                                 loader
+                                 loader (compiled into the app via JNI)
   src/series/s22|s26|zf8/        per-series entry points, parameter tables,
                                  and assembly
+  tests/                         host selftests (run on any machine, no device)
 ```
 
 ## Building
@@ -108,8 +144,9 @@ cd app
 The `:app:verifyPayloads` Gradle task validates the payload set during the
 build: each series folder must provide `preload.so` and `su_daemon`,
 `payloads/ksud/` must provide `ksud` and `ksud-next`, and
-`payloads/dirtyfrag/` must provide `dfr_payload` plus one
-`dfr_lkm-<kmi>.ko` for every supported KMI.
+`payloads/dirtyfrag/` must provide one
+`dfr_lkm-<kmi>.ko` for every supported KMI (the user-space dirtyfrag
+chain is compiled into the app via JNI, not staged as a separate binary).
 
 ### Native payloads
 
@@ -119,9 +156,18 @@ artifacts land under `exploit/build/`:
 
 ```bash
 cd exploit
-make            # all series + dirtyfrag payloads
-make s26        # or a single target: s26 / s22 / zf8 / dirtyfrag
+make            # all series payloads (s26 / s22 / zf8)
+make s26        # or a single target: s26 / s22 / zf8
+make test       # host selftests (no device / NDK needed)
 ```
+
+`make test` compiles `exploit/tests/options_selftest.c` against the real
+`options.c` and runs it on the host: it locks the config-layer precedence
+rules (default < file < env < CLI, pair-env reload semantics) and fails the
+build if a regression reintroduces the env-over-CLI shadowing bug. A ready
+GitHub Actions workflow that runs this selftest plus
+`./gradlew assembleDebug` on every push is attached to PR #10 — drop it
+into `.github/workflows/` to enable CI.
 
 ### Dirtyfrag kernel module
 
@@ -143,21 +189,31 @@ them from those repositories when bumping the version.
 ## Usage
 
 1. Install the APK on a supported device (or build it as shown above).
-2. Enable USB debugging and connect over ADB.
-3. In the app, pick the install path:
-   - **dirtyfrag (recommended)**: a single run - the chain deploys and
-     late-loads the KernelSU module directly.
-   - **Ghostlock chains**: the race-based exploit for the selected series;
-     the device reboots during the run, and the app then performs the
-     KernelSU late-load.
+2. Pick a scheme in Settings:
+   - **DirtyFrag (recommended)**: run straight from the home card — no
+     companion app, no debugging channel needed.
+   - **Ghostlock**: pair wireless debugging from inside the app (or grant
+     Shizuku), then tap the home card. Keep the screen on while the race
+     runs.
+3. Optional: enable *Re-apply reminder on boot* (More → Support) so a
+   reboot is followed by a one-tap re-run notification.
 
 ## Runtime options
 
 The payloads read a small set of `GHOSTSAM_*` environment variables injected
-by the app over ADB - for example `GHOSTSAM_NO_KSU`, `GHOSTSAM_KSU_DEFER`
-and `GHOSTSAM_PARAMS_STRICT`. The authoritative list and semantics live in
-the payload sources (`exploit/src/common/options.*`); the app UI exposes the
-safe subset.
+by the app-side JNI/exec chain - for example `GHOSTSAM_NO_KSU`,
+`GHOSTSAM_KSU_DEFER` and `GHOSTSAM_PARAMS_STRICT`. The authoritative list
+and semantics live in the payload sources (`exploit/src/common/options.*`);
+the app UI exposes the safe subset.
+
+## Reporting issues
+
+- Attach the run log (History → detail → export). Failed runs already carry
+  the `[diag]` evidence bundle at the tail.
+- For device-adaptation requests, paste the block from More → Support →
+  *Copy device report* — it has every field an adaptation needs.
+- One issue per device series; include whether you ran Ghostlock or
+  DirtyFrag, and the exact failure line (`[-] ...`).
 
 ## Relationship to DFRoot
 

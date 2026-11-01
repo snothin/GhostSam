@@ -1,6 +1,7 @@
 package com.snothin.ghostsam.ui.screen
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -40,11 +41,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.snothin.ghostsam.R
+import com.snothin.ghostsam.data.device.DeviceReport
 import com.snothin.ghostsam.data.device.DeviceSnapshot
 import com.snothin.ghostsam.data.prefs.ExploitPrefs
 import com.snothin.ghostsam.data.exploit.KernelLine
@@ -88,6 +92,7 @@ private class MoreScreenState(val context: Context) {
     var allowShell by mutableStateOf(ExploitPrefs.allowShellEnabled(context))
     var autoSoftReboot by mutableStateOf(ExploitPrefs.autoSoftRebootEnabled(context))
     var paramsFallback by mutableStateOf(ExploitPrefs.paramsFallback(context))
+    var bootReapply by mutableStateOf(SettingsPrefs.bootReapply(context))
 
     fun onCustomEnabledChange(enabled: Boolean) {
         customEnabled = enabled
@@ -161,6 +166,7 @@ fun MoreScreen(
             ExploitParamsBlock(state, standaloneRoute)
             DebugBlock(state, standaloneRoute)
             AppGatesBlock(state, standaloneRoute)
+            SupportBlock(state)
         }
     }
 
@@ -495,6 +501,54 @@ private val customFieldSummaries = intArrayOf(
 )
 
 @Composable
+/** Support block: boot re-apply toggle (issue #7) + paste-ready device report for
+ *  adaptation issues (#4 / #8 / #9). */
+private fun LazyListScope.SupportBlock(state: MoreScreenState) {
+    val context = state.context
+    item { SectionLabel(stringResource(R.string.section_support)) }
+    item {
+        val clipboard = LocalClipboardManager.current
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                SwitchPreference(
+                    title = stringResource(R.string.settings_boot_reapply),
+                    summary = stringResource(R.string.settings_boot_reapply_summary),
+                    startAction = {
+                        Icon(
+                            Icons.Rounded.Schedule,
+                            modifier = Modifier.padding(end = 6.dp),
+                            contentDescription = stringResource(R.string.settings_boot_reapply),
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    },
+                    checked = state.bootReapply,
+                    onCheckedChange = {
+                        state.bootReapply = it
+                        SettingsPrefs.setBootReapply(context, it)
+                    },
+                )
+                DividerMiuix()
+                ArrowPreference(
+                    title = stringResource(R.string.support_device_report),
+                    summary = stringResource(R.string.support_device_report_summary),
+                    startAction = {
+                        Icon(
+                            Icons.Rounded.BugReport,
+                            modifier = Modifier.padding(end = 6.dp),
+                            contentDescription = stringResource(R.string.support_device_report),
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    },
+                    onClick = {
+                        clipboard.setText(AnnotatedString(DeviceReport.build(context)))
+                        Toast.makeText(context, R.string.support_report_copied, Toast.LENGTH_SHORT).show()
+                    },
+                )
+            }
+        }
+    }
+}
+
 private fun NumberPreference(
     title: String,
     summary: String,

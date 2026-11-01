@@ -1,7 +1,9 @@
 package com.snothin.ghostsam
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import com.snothin.ghostsam.data.exploit.BootReapplyReceiver
+import com.snothin.ghostsam.data.exploit.ExploitViewModel
 import com.snothin.ghostsam.data.prefs.ThemePrefs
 import com.snothin.ghostsam.data.channel.ExploitChannel
 import com.snothin.ghostsam.data.prefs.SettingsPrefs
@@ -33,6 +37,7 @@ class MainActivity : ComponentActivity() {
         // Built-in adb wireless-debug bridge init (idempotent; the default exploit channel).
         AdbController.init(this)
         ExploitChannel.setMode(SettingsPrefs.executionMode(this))
+        handleAutorun(intent)
 
         setContent {
             var appSettings by remember { mutableStateOf(ThemeController.getAppSettings(this)) }
@@ -75,6 +80,23 @@ class MainActivity : ComponentActivity() {
                         },
                     )
                 }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleAutorun(intent)
+    }
+
+    /** Boot re-apply entry (issue #7): the notification tap lands here and starts the run.
+     *  The VM is activity-scoped, so this drives the same run the Exploit screen shows. */
+    private fun handleAutorun(intent: Intent?) {
+        if (intent?.getBooleanExtra(BootReapplyReceiver.EXTRA_AUTORUN, false) != true) return
+        intent.removeExtra(BootReapplyReceiver.EXTRA_AUTORUN)
+        window.decorView.post {
+            runCatching {
+                ViewModelProvider(this)[ExploitViewModel::class.java].start()
             }
         }
     }

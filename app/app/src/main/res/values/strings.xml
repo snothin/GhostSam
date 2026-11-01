@@ -452,4 +452,13 @@
     <string name="terminal_title">Terminal</string>
     <string name="terminal_banner">GhostSam Terminal\nBackend: su / wireless debug / Shizuku\n\n</string>
     <string name="terminal_failed">[error] Failed to spawn shell (no channel available)\n</string>
+    <string name="section_support">Support</string>
+    <string name="settings_boot_reapply">Re-apply reminder on boot</string>
+    <string name="settings_boot_reapply_summary">After a reboot, post a one-tap notification to re-run the chain. The run never starts unattended - your tap starts it. Needs the notification permission on Android 13+.</string>
+    <string name="boot_reapply_channel">Boot re-apply</string>
+    <string name="boot_reapply_notif_title">Root lost after reboot</string>
+    <string name="boot_reapply_notif_text">Tap to re-apply GhostSam root.</string>
+    <string name="support_device_report">Copy device report</string>
+    <string name="support_device_report_summary">Copies a paste-ready markdown block (codename, build, kernel, match evidence) for device-adaptation issues.</string>
+    <string name="support_report_copied">Device report copied</string>
 </resources>
