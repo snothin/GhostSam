@@ -452,4 +452,13 @@
     <string name="terminal_title">终端</string>
     <string name="terminal_banner">GhostSam 终端\n后端：su / 无线调试 / Shizuku\n\n</string>
     <string name="terminal_failed">[错误] 无法启动 Shell(无可用通道)\n</string>
+    <string name="section_support">支持</string>
+    <string name="settings_boot_reapply">开机后提醒重新获取 root</string>
+    <string name="settings_boot_reapply_summary">重启后发送一条通知，点按即可重新运行提权链。不会在无人操作时自动执行——你的点按才会启动。Android 13+ 需要通知权限。</string>
+    <string name="boot_reapply_channel">开机重新获取</string>
+    <string name="boot_reapply_notif_title">重启后 root 已失效</string>
+    <string name="boot_reapply_notif_text">点按重新应用 GhostSam root。</string>
+    <string name="support_device_report">复制设备报告</string>
+    <string name="support_device_report_summary">复制可直接粘贴到 GitHub issue 的 Markdown 设备信息（代号、版本、内核、匹配证据）。</string>
+    <string name="support_report_copied">设备报告已复制</string>
 </resources>
